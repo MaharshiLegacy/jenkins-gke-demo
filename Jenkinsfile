@@ -38,6 +38,54 @@ pipeline {
         sh './mvnw clean verify'
     }
 }
+
+        
+stage('Build Docker Image') {
+    steps {
+        sh '''
+            set -eu
+
+            PROJECT_ID="project-f45bd8e2-3bd4-49b8-a29"
+            REGION="asia-south1"
+            REPOSITORY="jenkins-gke-demo"
+            IMAGE_NAME="gke-demo"
+
+            IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}"
+
+            echo "Building Docker image: ${IMAGE_URI}:${BUILD_NUMBER}"
+
+            docker build \
+                -t "${IMAGE_URI}:${BUILD_NUMBER}" \
+                -t "${IMAGE_URI}:latest" .
+        '''
+    }
+}
+
+stage('Push Image to Artifact Registry') {
+    steps {
+        sh '''
+            set -eu
+
+            PROJECT_ID="project-f45bd8e2-3bd4-49b8-a29"
+            REGION="asia-south1"
+            REPOSITORY="jenkins-gke-demo"
+            IMAGE_NAME="gke-demo"
+
+            IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}"
+
+            gcloud auth configure-docker \
+                "${REGION}-docker.pkg.dev" --quiet
+
+            docker push "${IMAGE_URI}:${BUILD_NUMBER}"
+            docker push "${IMAGE_URI}:latest"
+
+            echo "Image pushed successfully."
+            echo "${IMAGE_URI}:${BUILD_NUMBER}"
+        '''
+    }
+}
+
+        
     
     }
 }
