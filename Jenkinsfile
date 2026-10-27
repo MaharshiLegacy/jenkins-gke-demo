@@ -7,8 +7,9 @@ pipeline {
   
     
     stages{
-          stage('Check Java Version') {
+         stage('Check Java Version') {
     steps {
+        sh 'chmod +x mvnw'
         sh 'echo "JAVA_HOME=$JAVA_HOME"'
         sh 'java -version'
         sh './mvnw -version'
@@ -19,12 +20,12 @@ pipeline {
                   checkout scm
               }
           }
-      stage('Build and Test') {
-            steps {
-                sh 'chmod +x mvnw'
-                sh './mvnw clean verify'
-            }
-        }
+    stage('Build and Test') {
+    steps {
+        sh 'chmod +x mvnw'
+        sh './mvnw clean verify'
+    }
+}
     
     }
 }
