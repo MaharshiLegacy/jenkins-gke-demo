@@ -20,6 +20,18 @@ pipeline {
                   checkout scm
               }
           }
+
+        stage('Check Java Compiler') {
+    steps {
+        sh 'echo "JAVA_HOME=$JAVA_HOME"'
+        sh 'which java'
+        sh 'java -version'
+        sh 'which javac'
+        sh 'javac -version'
+        sh 'javac --help | grep -A 2 -- "--release"'
+    }
+}
+        
     stage('Build and Test') {
     steps {
         sh 'chmod +x mvnw'
