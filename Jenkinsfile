@@ -86,6 +86,57 @@ stage('Push Image to Artifact Registry') {
 }
 
         
+stage('Deploy to GKE') {
+    steps {
+        sh '''
+            set -eu
+
+            PROJECT_ID="project-f45bd8e2-3bd4-49b8-a29"
+            REGION="asia-south1"
+            CLUSTER="jenkins-gke-cluster"
+            IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/jenkins-gke-demo/gke-demo:${BUILD_NUMBER}"
+
+            gcloud config set project "${PROJECT_ID}"
+
+            gcloud container clusters get-credentials "${CLUSTER}" \
+              --region="${REGION}" \
+              --project="${PROJECT_ID}"
+
+            kubectl create namespace demo \
+              --dry-run=client -o yaml | kubectl apply -f -
+
+            # Save the existing deployment revision for rollback.
+            if kubectl get deployment gke-demo -n demo >/dev/null 2>&1; then
+                echo "Existing deployment found."
+            else
+                echo "First deployment: Kubernetes will create the Deployment."
+            fi
+
+            # Apply the manifest and use this build's unique image tag.
+            sed "s|image: .*|image: ${IMAGE_URI}|" k8s/deployment.yaml \
+              | kubectl apply -f -
+
+            kubectl rollout status deployment/gke-demo \
+              -n demo --timeout=300s
+        '''
+    }
+}
+
+stage('Verify Deployment') {
+    steps {
+        sh '''
+            set -eu
+            kubectl get deployment gke-demo -n demo
+            kubectl get pods -n demo -o wide
+            kubectl get deployment gke-demo -n demo \
+              -o jsonpath='{.spec.template.spec.containers[0].image}'
+            echo
+        '''
+    }
+}
+
+
+        
     
     }
 }
