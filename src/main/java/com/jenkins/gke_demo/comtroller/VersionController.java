@@ -16,7 +16,7 @@ public class VersionController {
     @GetMapping("/version")
     public Map<String, String> getVersion() {
         return Map.of(
-            "application", "jenkins-gke-demo",
+            "application OF Maharshi", "jenkins-gke-demo",
             "version", version,
             "message", "Hello from GKE!"
         );
