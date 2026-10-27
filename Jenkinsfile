@@ -3,6 +3,15 @@ pipeline {
     tools{
       jdk 'java21'
     }
+
+    stage('Check Java Version') {
+    steps {
+        sh 'echo "JAVA_HOME=$JAVA_HOME"'
+        sh 'java -version'
+        sh './mvnw -version'
+    }
+}
+    
     stages{
       stage('Checkout') {
               steps {
